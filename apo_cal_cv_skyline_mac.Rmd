@@ -1,0 +1,41 @@
+---
+#title: "Laux"
+#output: html_document
+---
+
+
+```{r}
+rm(list = ls())
+library(readxl)
+path = '/Users/xuluang/Library/CloudStorage/OneDrive-个人/R_Rmd_Datalab/202304Trypsin酶用量优化/0503/20230505enzyme_opti_Ratio&Area_waitingCorrected.xlsx'
+folder<-setwd(path)
+file <- '/Users/xuluang/Library/CloudStorage/OneDrive-个人/R_Rmd_Datalab/202304Trypsin酶用量优化/0503/20230505enzyme_opti_Ratio&Area_waitingCorrected.xlsx'
+result <- c()
+shtnames = readxl::excel_sheets(file)
+for (i in 1:length(shtnames)) {
+  a = read_xlsx(file,sheet = shtnames[i])
+  for (batch in unique(a$Protein)) {
+    for (var in c("1ug","2ug","3ug_trypsin_", "4ug","3_ug_trypsin_1weekTris", "3ug_trypsin_1weekABB")) {
+      for (var2 in unique(a$'Fragment.Ion') ){
+        a3 <- a[a$Protein==batch, ]
+        a3 <- a3[a3$'Fragment.Ion'==var2, ]
+        a4 <- a3[grepl(var,a3$Replicates_new),]
+        if(nrow(a4)==0){
+          next;
+        }
+        mean <- mean(as.numeric(a4$RatioLightToHeavy),na.rm=T)
+        sd <- sd(as.numeric(a4$RatioLightToHeavy),na.rm=T)
+        result <- rbind(result,c(shtnames[i],batch,var,var2,mean,sd,sd/mean))
+     
+      } 
+    }
+  }
+}
+colnames(result)[2:7] <- c("batch","var","var2","mean","sd","cv")
+write.csv(result,"20241228enzyme_opti2.csv")
+```
+
+
+
+
+
